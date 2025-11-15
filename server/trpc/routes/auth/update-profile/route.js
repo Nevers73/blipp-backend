@@ -1,7 +1,7 @@
 // trpc/routes/auth/update-profile/route.js
+import { protectedProcedure } from "trpc/create-context.js";
 
-import { protectedProcedure } from "../../create-context.js";
-import { usersStorage } from "../../../storage/users-storage.js";
+import { usersStorage } from "storage/users-storage.js";
 import { z } from "zod";
 
 export const updateProfile = protectedProcedure

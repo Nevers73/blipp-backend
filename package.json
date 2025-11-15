@@ -4,8 +4,8 @@
   "type": "module",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "start": "NODE_OPTIONS='--experimental-specifier-resolution=node' node server/index.js",
+    "dev": "NODE_OPTIONS='--experimental-specifier-resolution=node' node --watch server/index.js"
   },
   "engines": {
     "node": ">=18 <=22"

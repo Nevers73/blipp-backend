@@ -1,5 +1,6 @@
-import { protectedProcedure } from "../../create-context.js";
-import { sessionsStorage } from "../../../storage/sessions-storage.js";
+import { protectedProcedure } from "trpc/create-context.js";
+
+import { sessionsStorage } from "storage/sessions-storage.js";
 import { TRPCError } from "@trpc/server";
 
 export const logout = protectedProcedure.mutation(({ ctx }) => {

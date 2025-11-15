@@ -1,7 +1,8 @@
 // trpc/routes/favoris/remove/route.js
 
-import { protectedProcedure } from "../../create-context.js";
-import { usersStorage } from "../../../storage/users-storage.js";
+import { protectedProcedure } from "trpc/create-context.js";
+
+import { usersStorage } from "storage/users-storage.js";
 import { z } from "zod";
 
 export const removeFavori = protectedProcedure
