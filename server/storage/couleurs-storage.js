@@ -1,3 +1,4 @@
+// server/storage/couleurs-storage.js
 import { couleursMock } from "../data/couleurs.js";
 import path from "path";
 import { promises as fs } from "fs";
@@ -7,9 +8,12 @@ const GIST_RAW_URL =
 
 const GLOBAL_STORAGE_KEY = "__couleursCache__";
 
-// ✅ Chemin corrigé : Render lit dans /src/storage/data/
-const DATA_DIR = path.join(process.cwd(), "src", "storage", "data");
+// ✅ On part de la racine du projet, puis server/storage/data
+const DATA_DIR = path.join(process.cwd(), "server", "storage", "data");
 const DATA_FILE_PATH = path.join(DATA_DIR, "couleurs.json");
+
+// ... (le reste de ton fichier tel que tu l’as déjà)
+
 
 const globalScope = globalThis;
 
