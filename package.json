@@ -2,10 +2,10 @@
   "name": "blipp-backend",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/index.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
   },
   "engines": {
     "node": ">=18 <=22"
