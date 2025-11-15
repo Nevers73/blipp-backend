@@ -1,6 +1,7 @@
-import { Couleur } from "@/types";
+// AUCUNE IMPORTATION — Node backend n'a pas accès aux alias Vue/React.
+// Ce fichier doit être du JavaScript pur.
 
-export const couleursMock: Couleur[] = [
+export const couleursMock = [
   {
     id: "1",
     numero: 1,
