@@ -2,7 +2,7 @@ import { adminProcedure } from "../../create-context.js";
 import { couleursStorage } from "../../../storage/couleurs-storage.js";
 import { z } from "zod";
 
-// Détecte le séparateur dans le CSV
+// Détecte le séparateur dans la première ligne
 function detectSeparator(line) {
   const separators = ["\t", ";", ","];
   const counts = separators.map((sep) => line.split(sep).length - 1);
@@ -10,7 +10,7 @@ function detectSeparator(line) {
   return separators[maxIndex];
 }
 
-// Parse une ligne CSV en tenant compte des guillemets
+// Parse une ligne CSV en gérant correctement les guillemets
 function parseCSVLine(line, separator) {
   const result = [];
   let current = "";
@@ -18,20 +18,26 @@ function parseCSVLine(line, separator) {
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
+
     if (char === '"') {
       inQuotes = !inQuotes;
-    } else if (char === separator && !inQuotes) {
+      continue;
+    }
+
+    if (char === separator && !inQuotes) {
       result.push(current.trim());
       current = "";
-    } else {
-      current += char;
+      continue;
     }
+
+    current += char;
   }
+
   result.push(current.trim());
   return result;
 }
 
-// Catégorise la couleur selon L, A, B
+// Catégorie calculée automatiquement à partir du LAB
 function categorizeColor(L, A, B) {
   if (A > 40 && B > 20) return "Rouge";
   if (A > 30 && B < 10) return "Rose";
@@ -43,20 +49,17 @@ function categorizeColor(L, A, B) {
   return "Rose";
 }
 
-// Génère un nom à partir des gouttes
+// Génère un nom lisible type "2A + 3C"
 function generateColorName(gouttes) {
-  const activeGouttes = [];
-  const gouttesLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
+  const result = [];
+  const keys = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
 
-  gouttesLetters.forEach((letter) => {
-    const key = `gouttes${letter}`;
-    const qty = gouttes[key] || 0;
-    if (qty > 0) {
-      activeGouttes.push(`${qty}${letter}`);
-    }
-  });
+  for (const letter of keys) {
+    const qty = gouttes[`gouttes${letter}`];
+    if (qty > 0) result.push(`${qty}${letter}`);
+  }
 
-  return activeGouttes.join("+") || "Teinte";
+  return result.length > 0 ? result.join("+") : "Teinte";
 }
 
 export const uploadCSV = adminProcedure
@@ -66,21 +69,23 @@ export const uploadCSV = adminProcedure
     })
   )
   .mutation(async ({ input }) => {
-    console.log("[tRPC] Processing CSV upload");
+    console.log("[CSV] Début import…");
 
     try {
       const lines = input.csvContent.trim().split("\n");
 
       if (lines.length < 2) {
-        throw new Error("Le fichier CSV est vide ou invalide");
+        throw new Error("Le fichier CSV est vide ou incorrect.");
       }
 
+      // Détection automatique du séparateur
       const separator = detectSeparator(lines[0]);
-      console.log("[tRPC] Detected separator:", separator);
+      console.log("[CSV] Séparateur détecté:", JSON.stringify(separator));
 
       const headers = parseCSVLine(lines[0], separator);
-      console.log("[tRPC] CSV Headers:", headers);
+      console.log("[CSV] En-têtes détectés:", headers);
 
+      // Headers obligatoires
       const requiredHeaders = [
         "Gouttes A",
         "Gouttes B",
@@ -105,61 +110,42 @@ export const uploadCSV = adminProcedure
 
       const couleurs = [];
 
+      // Traitement ligne par ligne
       for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
+        const rawLine = lines[i].trim();
+        if (!rawLine.length) continue; // Skip lignes vides
 
-        const values = parseCSVLine(line, separator);
+        const values = parseCSVLine(rawLine, separator);
         const rowData = {};
 
-        headers.forEach((header, idx) => {
-          rowData[header] = values[idx] || "";
+        // Mappe les colonnes
+        headers.forEach((h, idx) => {
+          rowData[h] = values[idx] || "";
         });
 
-        const gouttesA = parseInt(rowData["Gouttes A"]) || 0;
-        const gouttesB = parseInt(rowData["Gouttes B"]) || 0;
-        const gouttesC = parseInt(rowData["Gouttes C"]) || 0;
-        const gouttesD = parseInt(rowData["Gouttes D"]) || 0;
-        const gouttesE = parseInt(rowData["Gouttes E"]) || 0;
-        const gouttesF = parseInt(rowData["Gouttes F"]) || 0;
-        const gouttesG = parseInt(rowData["Gouttes G"]) || 0;
-        const gouttesH = parseInt(rowData["Gouttes H"]) || 0;
-        const gouttesI = parseInt(rowData["Gouttes I"]) || 0;
-        const volume = parseFloat(rowData["Volume (cc)"]) || 0;
+        // Extraction sécurisée des données
+        const gouttes = {};
+        for (const letter of ["A", "B", "C", "D", "E", "F", "G", "H", "I"]) {
+          gouttes[`gouttes${letter}`] =
+            parseInt(rowData[`Gouttes ${letter}`]) || 0;
+        }
+
         const L = parseFloat(rowData["L"]) || 0;
         const A = parseFloat(rowData["A"]) || 0;
         const B = parseFloat(rowData["B"]) || 0;
+        const volume = parseFloat(rowData["Volume (cc)"]) || 0;
 
-        let hex = rowData["Couleur HEX"] || "#000000";
+        let hex = rowData["Couleur HEX"].trim();
         if (!hex.startsWith("#")) hex = `#${hex}`;
 
         const categorie = categorizeColor(L, A, B);
-        const nom = generateColorName({
-          gouttesA,
-          gouttesB,
-          gouttesC,
-          gouttesD,
-          gouttesE,
-          gouttesF,
-          gouttesG,
-          gouttesH,
-          gouttesI,
-        });
+        const nom = generateColorName(gouttes);
 
+        // Construction de la couleur
         couleurs.push({
-          id: `couleur_${Date.now()}_${i}_${Math.random()
-            .toString(36)
-            .substring(2, 9)}`,
+          id: `c_${i}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           numero: i,
-          gouttesA,
-          gouttesB,
-          gouttesC,
-          gouttesD,
-          gouttesE,
-          gouttesF,
-          gouttesG,
-          gouttesH,
-          gouttesI,
+          ...gouttes,
           volume,
           L,
           A,
@@ -170,20 +156,21 @@ export const uploadCSV = adminProcedure
         });
       }
 
+      // Remplace toute la base
       await couleursStorage.replaceAll(couleurs);
 
-      console.log(`[tRPC] CSV uploadé avec succès: ${couleurs.length} couleurs`);
+      console.log(`[CSV] Import terminé → ${couleurs.length} couleurs.`);
 
       return {
         success: true,
         count: couleurs.length,
         message: `${couleurs.length} couleurs importées avec succès`,
       };
-    } catch (error) {
-      console.error("[tRPC] Erreur upload CSV:", error);
+    } catch (err) {
+      console.error("[CSV] Erreur:", err);
       throw new Error(
-        `Échec du traitement CSV: ${
-          error instanceof Error ? error.message : "Erreur inconnue"
+        `Impossible de traiter le CSV : ${
+          err instanceof Error ? err.message : "Erreur inconnue"
         }`
       );
     }

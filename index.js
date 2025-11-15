@@ -1,13 +1,13 @@
-import { serve } from "@hono/node-server";
-import app from "./hono.js";
+import { serve } from '@hono/node-server';
+import app from './hono.js';
 
-const port = Number(process.env.PORT) || 3000;
+const port = process.env.PORT || 3000;
 
-console.log(`🚀 Starting server on port ${port}...`);
+console.log(`🚀 Server starting on port ${port}...`);
 
 serve({
   fetch: app.fetch,
-  port,
+  port: Number(port),
 });
 
-console.log(`✅ Hono server is running`);
+console.log(`✅ Server running on http://localhost:${port}`);

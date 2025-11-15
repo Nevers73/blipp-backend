@@ -12,18 +12,21 @@ class SessionsStorage {
     };
 
     this.sessions.set(sessionId, session);
-    console.log(`Session created for user ${userId}: ${sessionId}`);
+    console.log(`[SessionsStorage] Session created for user ${userId}: ${sessionId}`);
     return sessionId;
   }
 
   get(sessionId) {
+    // Nettoyage automatique passif
+    this.cleanup();
+
     const session = this.sessions.get(sessionId);
 
     if (!session) return undefined;
 
     if (session.expiresAt < new Date()) {
       this.sessions.delete(sessionId);
-      console.log(`Session expired: ${sessionId}`);
+      console.log(`[SessionsStorage] Session expired: ${sessionId}`);
       return undefined;
     }
 
@@ -32,7 +35,7 @@ class SessionsStorage {
 
   delete(sessionId) {
     this.sessions.delete(sessionId);
-    console.log(`Session deleted: ${sessionId}`);
+    console.log(`[SessionsStorage] Session deleted: ${sessionId}`);
   }
 
   getUserId(sessionId) {
@@ -41,7 +44,9 @@ class SessionsStorage {
   }
 
   generateSessionId() {
-    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    const random = Math.random().toString(36).slice(2);
+    const timestamp = Date.now().toString(36);
+    return `sess_${timestamp}_${random}`;
   }
 
   cleanup() {
@@ -56,14 +61,9 @@ class SessionsStorage {
     }
 
     if (count > 0) {
-      console.log(`Cleaned up ${count} expired sessions`);
+      console.log(`[SessionsStorage] Cleaned up ${count} expired sessions`);
     }
   }
 }
 
 export const sessionsStorage = new SessionsStorage();
-
-// Nettoyage automatique toutes les heures
-setInterval(() => {
-  sessionsStorage.cleanup();
-}, 60 * 60 * 1000);

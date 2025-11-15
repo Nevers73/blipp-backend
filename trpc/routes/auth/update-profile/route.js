@@ -1,7 +1,7 @@
 // trpc/routes/auth/update-profile/route.js
 
-import { protectedProcedure } from "../../../create-context.js";
-import { usersStorage } from "../../../../storage/users-storage.js";
+import { protectedProcedure } from "../../create-context.js";
+import { usersStorage } from "../../../storage/users-storage.js";
 import { z } from "zod";
 
 export const updateProfile = protectedProcedure
@@ -12,7 +12,7 @@ export const updateProfile = protectedProcedure
     })
   )
   .mutation(({ ctx, input }) => {
-    console.log(`[tRPC] Updating profile for user: ${ctx.userId}`);
+    console.log(`[auth] Updating profile for user: ${ctx.userId}`);
 
     const updatedUser = usersStorage.update(ctx.userId, input);
 

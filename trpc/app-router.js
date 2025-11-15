@@ -1,7 +1,4 @@
-// trpc/app-router.js
-
 import { createTRPCRouter } from "./create-context.js";
-import * as hiRoute from "./routes/example/hi/route.js";
 
 import { listCouleurs } from "./routes/couleurs/list/route.js";
 import { getCouleurById } from "./routes/couleurs/get-by-id/route.js";
@@ -22,20 +19,20 @@ import { listFavoris } from "./routes/favoris/list/route.js";
 
 import { uploadCSV } from "./routes/admin/upload-csv/route.js";
 
+const hiRoute = () => "hi";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
-    hi: hiRoute.default ?? hiRoute.hi ?? hiRoute,
+    hi: hiRoute,
   }),
-
   couleurs: createTRPCRouter({
     list: listCouleurs,
     getById: getCouleurById,
     getByCategorie: getCouleursByCategorie,
     search: searchCouleurs,
     findClosest: findClosestCouleur,
-    getCategories: getCategories,
+    getCategories,
   }),
-
   auth: createTRPCRouter({
     register,
     login,
@@ -43,13 +40,11 @@ export const appRouter = createTRPCRouter({
     me,
     updateProfile,
   }),
-
   favoris: createTRPCRouter({
     add: addFavori,
     remove: removeFavori,
     list: listFavoris,
   }),
-
   admin: createTRPCRouter({
     uploadCSV,
   }),

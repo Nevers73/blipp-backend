@@ -1,67 +1,39 @@
-// create-context.js
-
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
+
 import { sessionsStorage } from "../storage/sessions-storage.js";
 import { usersStorage } from "../storage/users-storage.js";
 
-// Crée le contexte pour TRPC
 export const createContext = async ({ req }) => {
   const sessionId = req.headers.get("x-session-id") || "";
   const userId = sessionId ? sessionsStorage.getUserId(sessionId) : undefined;
   const user = userId ? usersStorage.getById(userId) : undefined;
 
-  return {
-    req,
-    sessionId,
-    userId,
-    user,
-  };
+  return { req, sessionId, userId, user };
 };
 
 const t = initTRPC.context().create({
   transformer: superjson,
 });
 
-// Middleware pour utilisateur authentifié
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  if (!ctx.user || !ctx.userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      userId: ctx.userId,
-    },
-  });
-});
-
-// Middleware pour admin
-const isAdmin = t.middleware(({ ctx, next }) => {
-  if (!ctx.user || !ctx.userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-  }
-
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Admin access required",
-    });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-      userId: ctx.userId,
-    },
-  });
-});
-
-// Export TRPC helpers
-export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(isAuthenticated);
-export const adminProcedure = t.procedure.use(isAdmin);
+
+export const protectedProcedure = t.procedure.use(
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next();
+  })
+);
+
+export const adminProcedure = t.procedure.use(
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.userId || ctx.user.role !== "admin") {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+    return next();
+  })
+);
+
+export const createTRPCRouter = t.router;

@@ -1,12 +1,12 @@
-import { publicProcedure } from "../../../create-context.js";
-import { couleursStorage } from "../../../../storage/couleurs-storage.js";
+import { publicProcedure } from "../../create-context.js";
+import { couleursStorage } from "../../../storage/couleurs-storage.js";
 import { z } from "zod";
 
 export const getCouleurById = publicProcedure
   .input(z.object({ id: z.string() }))
   .query(async ({ input }) => {
     await couleursStorage.initialize();
-    console.log(`[tRPC] Fetching couleur by id: ${input.id}`);
+    console.log(`[couleurs] Fetching couleur by id: ${input.id}`);
 
     const couleur = couleursStorage.getById(input.id);
 

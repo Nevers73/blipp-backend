@@ -3,7 +3,7 @@ class UsersStorage {
     this.users = new Map();
     this.emailToId = new Map();
 
-    // Crée un admin par défaut
+    // Admin par défaut
     const adminUser = {
       id: "admin-1",
       nom: "Admin",
@@ -14,26 +14,43 @@ class UsersStorage {
     };
 
     this.users.set(adminUser.id, adminUser);
-    this.emailToId.set(adminUser.email, adminUser.id);
+    this.emailToId.set(adminUser.email.toLowerCase(), adminUser.id);
+  }
+
+  normalizeEmail(email) {
+    return (email || "").trim().toLowerCase();
   }
 
   getById(id) {
-    return this.users.get(id);
+    const user = this.users.get(id);
+    return user ? { ...user } : undefined;
   }
 
   getByEmail(email) {
-    const id = this.emailToId.get(email);
-    return id ? this.users.get(id) : undefined;
+    const normalized = this.normalizeEmail(email);
+    const id = this.emailToId.get(normalized);
+    const user = id ? this.users.get(id) : undefined;
+    return user ? { ...user } : undefined;
   }
 
   create(user) {
-    if (this.emailToId.has(user.email)) {
+    const normalizedEmail = this.normalizeEmail(user.email);
+
+    if (this.emailToId.has(normalizedEmail)) {
       throw new Error("Email already exists");
     }
-    this.users.set(user.id, user);
-    this.emailToId.set(user.email, user.id);
-    console.log(`User created: ${user.email}`);
-    return user;
+
+    const storedUser = {
+      ...user,
+      email: normalizedEmail,
+      favoris: user.favoris || [],
+    };
+
+    this.users.set(storedUser.id, storedUser);
+    this.emailToId.set(normalizedEmail, storedUser.id);
+
+    console.log(`[UsersStorage] User created: ${storedUser.email}`);
+    return { ...storedUser };
   }
 
   update(id, updates) {
@@ -42,16 +59,33 @@ class UsersStorage {
       throw new Error("User not found");
     }
 
-    const updatedUser = { ...user, ...updates, id };
+    let normalizedEmail = user.email;
 
-    if (updates.email && updates.email !== user.email) {
-      this.emailToId.delete(user.email);
-      this.emailToId.set(updates.email, id);
+    if (updates.email) {
+      const newEmail = this.normalizeEmail(updates.email);
+      if (newEmail !== user.email) {
+        if (this.emailToId.has(newEmail)) {
+          throw new Error("Email already exists");
+        }
+        // Mettre à jour la map email → id
+        this.emailToId.delete(user.email);
+        this.emailToId.set(newEmail, id);
+        normalizedEmail = newEmail;
+      }
     }
 
+    const updatedUser = {
+      ...user,
+      ...updates,
+      email: normalizedEmail,
+      id,
+    };
+
     this.users.set(id, updatedUser);
-    console.log(`User updated: ${id}`);
-    return updatedUser;
+
+    console.log(`[UsersStorage] User updated: ${id}`);
+
+    return { ...updatedUser };
   }
 
   delete(id) {
@@ -59,7 +93,7 @@ class UsersStorage {
     if (user) {
       this.emailToId.delete(user.email);
       this.users.delete(id);
-      console.log(`User deleted: ${id}`);
+      console.log(`[UsersStorage] User deleted: ${id}`);
     }
   }
 
@@ -70,11 +104,12 @@ class UsersStorage {
     }
 
     if (!user.favoris.includes(couleurId)) {
-      user.favoris.push(couleurId);
-      console.log(`Added favori ${couleurId} for user ${userId}`);
+      user.favoris = [...user.favoris, couleurId];
+      console.log(`[UsersStorage] Added favori ${couleurId} for user ${userId}`);
+      this.users.set(userId, user);
     }
 
-    return user;
+    return { ...user };
   }
 
   removeFavori(userId, couleurId) {
@@ -84,8 +119,11 @@ class UsersStorage {
     }
 
     user.favoris = user.favoris.filter((id) => id !== couleurId);
-    console.log(`Removed favori ${couleurId} for user ${userId}`);
-    return user;
+    this.users.set(userId, user);
+
+    console.log(`[UsersStorage] Removed favori ${couleurId} for user ${userId}`);
+
+    return { ...user };
   }
 }
 

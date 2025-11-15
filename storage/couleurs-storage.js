@@ -6,7 +6,9 @@ const GIST_RAW_URL =
   "https://gist.githubusercontent.com/Nevers73/1a903e9aeb13c4f40b337d40869cce10/raw/";
 
 const GLOBAL_STORAGE_KEY = "__couleursCache__";
-const DATA_DIR = path.join(process.cwd(), "backend", "storage", "data");
+
+// ⚠️ ICI : on enlève "backend"
+const DATA_DIR = path.join(process.cwd(), "storage", "data");
 const DATA_FILE_PATH = path.join(DATA_DIR, "couleurs.json");
 
 const globalScope = globalThis;
@@ -160,7 +162,9 @@ class CouleursStorage {
       this.saveToGlobal(gistCouleurs);
       await this.persist(gistCouleurs);
       this.initialized = true;
-      console.log(`[CouleursStorage] Initialized with ${gistCouleurs.length} couleurs from Gist`);
+      console.log(
+        `[CouleursStorage] Initialized with ${gistCouleurs.length} couleurs from Gist`
+      );
       return;
     }
 
@@ -168,7 +172,9 @@ class CouleursStorage {
     if (globalStored && globalStored.length > 0) {
       this.couleurs = globalStored;
       this.initialized = true;
-      console.log(`[CouleursStorage] Loaded ${globalStored.length} couleurs from global cache`);
+      console.log(
+        `[CouleursStorage] Loaded ${globalStored.length} couleurs from global cache`
+      );
       return;
     }
 

@@ -1,6 +1,6 @@
-import { publicProcedure } from "../../../create-context.js";
-import { usersStorage } from "../../../../storage/users-storage.js";
-import { sessionsStorage } from "../../../../storage/sessions-storage.js";
+import { publicProcedure } from "../../create-context.js";
+import { usersStorage } from "../../../storage/users-storage.js";
+import { sessionsStorage } from "../../../storage/sessions-storage.js";
 import { z } from "zod";
 
 export const register = publicProcedure
@@ -12,7 +12,7 @@ export const register = publicProcedure
     })
   )
   .mutation(({ input }) => {
-    console.log(`[tRPC] Registering user: ${input.email}`);
+    console.log(`[auth] Inscription utilisateur : ${input.email}`);
 
     const existingUser = usersStorage.getByEmail(input.email);
     if (existingUser) {
