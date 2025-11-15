@@ -14,11 +14,13 @@ export const register = publicProcedure
   .mutation(({ input }) => {
     console.log(`[auth] Inscription utilisateur : ${input.email}`);
 
+    // Vérifie si un utilisateur existe déjà
     const existingUser = usersStorage.getByEmail(input.email);
     if (existingUser) {
       throw new Error("Email already registered");
     }
 
+    // Crée un nouvel utilisateur
     const newUser = usersStorage.create({
       id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       nom: input.nom,
@@ -28,6 +30,7 @@ export const register = publicProcedure
       favoris: [],
     });
 
+    // Crée la session immédiatement après l'inscription
     const sessionId = sessionsStorage.create(newUser.id);
 
     return {
