@@ -1,5 +1,5 @@
-import { adminProcedure } from "../../../create-context.js";
-import { couleursStorage } from "../../../../storage/couleurs-storage.js";
+import { adminProcedure } from "../../create-context.js";
+import { couleursStorage } from "../../../storage/couleurs-storage.js";
 import { z } from "zod";
 
 // Détecte le séparateur dans le CSV
@@ -76,10 +76,7 @@ export const uploadCSV = adminProcedure
       }
 
       const separator = detectSeparator(lines[0]);
-      console.log(
-        "[tRPC] Detected separator:",
-        separator === "\t" ? "TAB" : separator
-      );
+      console.log("[tRPC] Detected separator:", separator);
 
       const headers = parseCSVLine(lines[0], separator);
       console.log("[tRPC] CSV Headers:", headers);
@@ -100,8 +97,8 @@ export const uploadCSV = adminProcedure
         "B",
         "Couleur HEX",
       ];
-      const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
 
+      const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
       if (missingHeaders.length > 0) {
         throw new Error(`Colonnes manquantes: ${missingHeaders.join(", ")}`);
       }
@@ -113,8 +110,8 @@ export const uploadCSV = adminProcedure
         if (!line) continue;
 
         const values = parseCSVLine(line, separator);
-
         const rowData = {};
+
         headers.forEach((header, idx) => {
           rowData[header] = values[idx] || "";
         });
@@ -132,11 +129,9 @@ export const uploadCSV = adminProcedure
         const L = parseFloat(rowData["L"]) || 0;
         const A = parseFloat(rowData["A"]) || 0;
         const B = parseFloat(rowData["B"]) || 0;
-        let hex = rowData["Couleur HEX"] || "#000000";
 
-        if (!hex.startsWith("#")) {
-          hex = `#${hex}`;
-        }
+        let hex = rowData["Couleur HEX"] || "#000000";
+        if (!hex.startsWith("#")) hex = `#${hex}`;
 
         const categorie = categorizeColor(L, A, B);
         const nom = generateColorName({

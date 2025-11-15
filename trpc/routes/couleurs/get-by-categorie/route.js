@@ -7,6 +7,8 @@ export const getCouleursByCategorie = publicProcedure
   .query(async ({ input }) => {
     await couleursStorage.initialize();
     console.log(`[tRPC] Fetching couleurs by categorie: ${input.categorie}`);
+    
     const couleurs = couleursStorage.getByCategorie(input.categorie);
+    
     return { couleurs };
   });

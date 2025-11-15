@@ -7,6 +7,7 @@ export const getCouleurById = publicProcedure
   .query(async ({ input }) => {
     await couleursStorage.initialize();
     console.log(`[tRPC] Fetching couleur by id: ${input.id}`);
+
     const couleur = couleursStorage.getById(input.id);
 
     if (!couleur) {

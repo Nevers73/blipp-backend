@@ -7,20 +7,19 @@ import { createContext } from "./trpc/create-context.js";
 
 const app = new Hono();
 
-// Activer CORS pour toutes les routes
+// CORS global
 app.use("*", cors());
 
-// TRPC endpoint
+// tRPC endpoint
 app.use(
   "/trpc/*",
   trpcServer({
-    endpoint: "/api/trpc",
     router: appRouter,
     createContext,
   })
 );
 
-// Route racine pour tester si l'API tourne
+// Route racine
 app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
