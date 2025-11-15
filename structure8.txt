@@ -4,9 +4,13 @@ C:.
 ³   structure.txt
 ³   structure4.txt
 ³   structure7.txt
+³   structure8.txt
 ³   
 ÀÄÄÄsrc
     ³   ddddddddddddd
+    ³   hono.js
+    ³   index.js
+    ³   package.json
     ³   
     ÃÄÄÄstorage
     ³       couleurs-storage.js
@@ -18,9 +22,6 @@ C:.
         ³   app-router.js
         ³   create-context.js
         ³   ddddd
-        ³   hono.js
-        ³   index.js
-        ³   package.json
         ³   
         ÀÄÄÄroutes
             ³   ccccccccccc

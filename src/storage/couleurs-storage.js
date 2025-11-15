@@ -7,8 +7,8 @@ const GIST_RAW_URL =
 
 const GLOBAL_STORAGE_KEY = "__couleursCache__";
 
-// chemin correct pour Render + ta structure
-const DATA_DIR = path.join(process.cwd(), "storage", "data");
+// ✅ Chemin corrigé : Render lit dans /src/storage/data/
+const DATA_DIR = path.join(process.cwd(), "src", "storage", "data");
 const DATA_FILE_PATH = path.join(DATA_DIR, "couleurs.json");
 
 const globalScope = globalThis;
